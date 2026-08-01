@@ -30,7 +30,8 @@
       "watchface": false
     },
     "messageKeys": [
-      "APIToken"
+      "APIToken",
+      "UpdateRate"
     ],
     "resources": {
       "media": []
