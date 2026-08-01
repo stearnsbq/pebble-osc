@@ -1,0 +1,39 @@
+{
+  "name": "pebble-pulsoid",
+  "author": "quinn50",
+  "version": "1.0.0",
+  "keywords": [
+    "pebble-app"
+  ],
+  "private": true,
+  "dependencies": {
+    "@rebble/clay": "^1.0.10"
+  },
+  "pebble": {
+    "displayName": "Pebble Pulsoid",
+    "uuid": "18c99954-ef27-4c64-83e1-d49440fca9f1",
+    "sdkVersion": "3",
+    "enableMultiJS": true,
+    "capabilities": [
+      "configurable"
+    ],
+    "targetPlatforms": [
+      "aplite",
+      "basalt",
+      "chalk",
+      "diorite",
+      "emery",
+      "flint",
+      "gabbro"
+    ],
+    "watchapp": {
+      "watchface": false
+    },
+    "messageKeys": [
+      "APIToken"
+    ],
+    "resources": {
+      "media": []
+    }
+  }
+}
