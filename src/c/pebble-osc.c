@@ -1,7 +1,66 @@
 #include <pebble.h>
 
+#define SETTINGS_KEY 1
+#define SOURCE_FOREGROUND 0
+#define SOURCE_BACKGROUND 1
+
 static Window *s_window;
 static TextLayer *s_text_layer;
+
+
+typedef struct PulsoidSettings {
+  char* APIToken;
+  int UpdateRate;
+} PulsoidSettings;
+
+
+static PulsoidSettings settings;
+
+static void prv_load_settings() {
+  persist_read_data(SETTINGS_KEY, &settings, sizeof(settings));
+
+
+    AppWorkerMessage message = {
+    .data0 = settings.UpdateRate
+  };
+
+  app_worker_send_message(SOURCE_FOREGROUND, &message);
+
+}
+
+
+// Save the settings to persistent storage
+static void prv_save_settings() {
+  persist_write_data(SETTINGS_KEY, &settings, sizeof(settings));
+
+
+  AppWorkerMessage message = {
+    .data0 = settings.UpdateRate
+  };
+
+  app_worker_send_message(SOURCE_FOREGROUND, &message);
+} 
+
+
+// AppMessage receive handler
+static void prv_inbox_received_handler(DictionaryIterator *iter, void *context) {
+ 
+  // Assign the values to our struct
+  Tuple *api_token_t = dict_find(iter, MESSAGE_KEY_APIToken);
+  if (api_token_t) {
+    settings.APIToken = (char*)api_token_t->value;
+  }
+
+  Tuple *update_rate_t = dict_find(iter, MESSAGE_KEY_UpdateRate);
+  if (api_token_t) {
+    settings.UpdateRate = update_rate_t->value->int32;
+  }
+
+  prv_save_settings();
+}
+
+
+
 
 static void prv_select_click_handler(ClickRecognizerRef recognizer, void *context) {
   text_layer_set_text(s_text_layer, "Select");
@@ -29,6 +88,7 @@ static void prv_window_load(Window *window) {
   text_layer_set_text(s_text_layer, "Press a button");
   text_layer_set_text_alignment(s_text_layer, GTextAlignmentCenter);
   layer_add_child(window_layer, text_layer_get_layer(s_text_layer));
+    AppWorkerResult result = app_worker_launch();
 }
 
 static void prv_window_unload(Window *window) {
@@ -36,6 +96,7 @@ static void prv_window_unload(Window *window) {
 }
 
 static void prv_init(void) {
+  prv_load_settings();
   s_window = window_create();
   window_set_click_config_provider(s_window, prv_click_config_provider);
   window_set_window_handlers(s_window, (WindowHandlers) {
@@ -44,6 +105,9 @@ static void prv_init(void) {
   });
   const bool animated = true;
   window_stack_push(s_window, animated);
+
+    app_message_register_inbox_received(prv_inbox_received_handler);
+  app_message_open(128, 128);
 }
 
 static void prv_deinit(void) {
