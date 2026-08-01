@@ -29,9 +29,6 @@ Pebble.addEventListener("ready", function () {
 
   if (claySettings) {
 
-    token = "375d41c6-05bc-4d66-a4f4-7f10e3377539"
-    console.log("sending heart rate")
-    sendValidate(token, 50)
-    sendHeartRate(token, 50)
+
   }
 });
