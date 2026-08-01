@@ -5,33 +5,87 @@ var clayConfig = require("./config");
 // Initialize Clay
 var clay = new Clay(clayConfig);
 
-// 59e1a644-9857-453c-b3b3-2cf8ea9f3a44
+const events = {
+  connected: 0,
+  socket_closed: 1,
+  connect: 2,
+  heart_rate: 3,
+};
 
-function sendHeartRate(token, heartRate) {
-  const result = fetch("https://dev.pulsoid.net/api/v1/data", {
-    method: "POST",
-    headers: { "content-type": "application/json", "Authorization": `Bearer ${token}` },
-    body: JSON.stringify({ measured_at: Date.now(), data: { heart_rate: heartRate } }),
-  }).then(resp => resp.json()).then(console.log).catch(console.log);
+var socket;
+
+function socket_open() {
+  Pebble.sendAppMessage(
+    { Event: events["connected"] },
+    () => {
+      console.log("sent socket connected event");
+    },
+    (e) => {
+      console.log("Message failed: " + JSON.stringify(e));
+    }
+  );
 }
 
+function socket_closed(data) {}
 
-function sendValidate(token, heartRate) {
-  const result = fetch("https://dev.pulsoid.net/api/v1/token/validate", {
-    method: "GET",
-    headers: { "content-type": "application/json", "Authorization": `Bearer ${token}` },
-  }).then(resp => resp.json()).then(console.log).catch(console.log);
+function socket_message(data) {
+  console.log("Websocket closed");
+
+  Pebble.sendAppMessage(
+    { Event: events["socket_closed"] },
+    () => {
+      console.log("sent socket closed event");
+    },
+    (e) => {
+      console.log("Message failed: " + JSON.stringify(e));
+    }
+  );
 }
 
+function connectToRelay() {
+  if (socket) {
+    socket.removeEventListener("open", socket_open);
 
-Pebble.addEventListener("ready", function () {
+    socket.removeEventListener("message", socket_message);
+
+    socket.removeEventListener("close", socket_message);
+    socket.close();
+  }
+
   var claySettings = localStorage.getItem("clay-settings");
 
   if (claySettings) {
-
-
-    console.log("sending heart rate")
-    sendValidate(token, 50)
-    sendHeartRate(token, 50)
+    const settings = JSON.parse(claySettings);
+    const host = settings["RelayHost"];
+    const port = settings["RelayPort"];
+    socket = new WebSocket(`ws://${host}:${port}`);
   }
+
+  socket.addEventListener("open", socket_open);
+
+  socket.addEventListener("message", socket_message);
+
+  socket.addEventListener("close", socket_message);
+}
+
+Pebble.addEventListener("appmessage", (req) => {
+  const payload = req.payload;
+
+  if ("Event" in payload) {
+    switch (payload["Event"]) {
+      case events["connect"]: {
+        connectToRelay();
+      }
+    }
+  } else if ("HeartRate" in payload) {
+    const heartRate = payload["HeartRate"];
+
+    socket.send(
+      JSON.stringify({ event: "heart_rate", data: heartRate })
+    );
+  }
+});
+
+Pebble.addEventListener("ready", function () {
+  connectToRelay();
 });

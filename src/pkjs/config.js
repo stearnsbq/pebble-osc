@@ -29,13 +29,19 @@ module.exports = [
     "items": [
       {
         "type": "heading",
-        "defaultValue": "Pulsoid Connection"
+        "defaultValue": "Relay Connection"
       },
       {
         "type": "input",
-        "messageKey": "APIToken",
-        "label": "Token",
+        "messageKey": "RelayHost",
+        "label": "Host",
         "defaultValue": ""
+      },
+      {
+        "type": "input",
+        "messageKey": "RelayPort",
+        "label": "Port",
+        "defaultValue": "8080"
       }
     ]
   },

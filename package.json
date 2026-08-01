@@ -10,12 +10,13 @@
     "@rebble/clay": "^1.0.10"
   },
   "pebble": {
-    "displayName": "Pebble Pulsoid",
+    "displayName": "Pebble OSC",
     "uuid": "18c99954-ef27-4c64-83e1-d49440fca9f1",
     "sdkVersion": "3",
     "enableMultiJS": true,
     "capabilities": [
-      "configurable"
+      "configurable",
+      "health"
     ],
     "targetPlatforms": [
       "aplite",
@@ -30,8 +31,11 @@
       "watchface": false
     },
     "messageKeys": [
-      "APIToken",
-      "UpdateRate"
+      "RelayHost",
+      "RelayPort",
+      "UpdateRate",
+      "HeartRate",
+      "Event"
     ],
     "resources": {
       "media": []
