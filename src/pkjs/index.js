@@ -10,6 +10,7 @@ const events = {
   socket_closed: 1,
   connect: 2,
   heart_rate: 3,
+  disconnect: 4
 };
 
 var socket;
@@ -42,7 +43,7 @@ function socket_message(data) {
   );
 }
 
-function connectToRelay() {
+function clean_up_socket(){
   if (socket) {
     socket.removeEventListener("open", socket_open);
 
@@ -51,6 +52,10 @@ function connectToRelay() {
     socket.removeEventListener("close", socket_message);
     socket.close();
   }
+}
+
+function connectToRelay() {
+  clean_up_socket();
 
   var claySettings = localStorage.getItem("clay-settings");
 
@@ -75,6 +80,11 @@ Pebble.addEventListener("appmessage", (req) => {
     switch (payload["Event"]) {
       case events["connect"]: {
         connectToRelay();
+        break;
+      }
+      case events["disconnect"]:{
+         clean_up_socket();
+        break;
       }
     }
   } else if ("HeartRate" in payload) {

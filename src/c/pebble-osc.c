@@ -95,7 +95,7 @@ static void prv_inbox_received_handler(DictionaryIterator *iter, void *context)
   prv_save_settings();
 }
 
-static void send_connect_message()
+static void send_event(int event)
 {
   DictionaryIterator *out_iter;
 
@@ -106,7 +106,7 @@ static void send_connect_message()
   {
     int evt = EVENT_CONNECT;
     // Construct the message
-    dict_write_int32(out_iter, MESSAGE_KEY_Event, EVENT_CONNECT);
+    dict_write_int32(out_iter, MESSAGE_KEY_Event, event);
     result = app_message_outbox_send();
     if (result != APP_MSG_OK)
     {
@@ -120,37 +120,14 @@ static void send_connect_message()
   }
 }
 
-static void send_disconnect_message()
-{
-  DictionaryIterator *out_iter;
 
-  // Prepare the outbox buffer for this message
-  AppMessageResult result = app_message_outbox_begin(&out_iter);
-
-  if (result == APP_MSG_OK)
-  {
-    int evt = EVENT_CONNECT;
-    // Construct the message
-    dict_write_int32(out_iter, MESSAGE_KEY_Event, EVENT_CONNECT);
-    result = app_message_outbox_send();
-    if (result != APP_MSG_OK)
-    {
-      APP_LOG(APP_LOG_LEVEL_ERROR, "Error sending the outbox: %d", (int)result);
-    }
-  }
-  else
-  {
-    // The outbox cannot be used right now
-    APP_LOG(APP_LOG_LEVEL_ERROR, "Error preparing the outbox: %d", (int)result);
-  }
-}
 
 static void prv_select_click_handler(ClickRecognizerRef recognizer, void *context)
 {
   // text_layer_set_text(s_text_layer, "Select");
   text_layer_set_text(s_text_layer, "Connecting to Relay");
   text_layer_set_text(sub_text_layer, "");
-  send_connect_message();
+  send_event(EVENT_CONNECT);
 }
 
 static void prv_up_click_handler(ClickRecognizerRef recognizer, void *context)
@@ -161,6 +138,7 @@ static void prv_up_click_handler(ClickRecognizerRef recognizer, void *context)
 static void prv_down_click_handler(ClickRecognizerRef recognizer, void *context)
 {
   // text_layer_set_text(s_text_layer, "Down");
+  send_event(EVENT_DISCONNECT);
 }
 
 static void prv_click_config_provider(void *context)
